@@ -64,15 +64,18 @@ class GameShopGUI:
         def update_queue_label():
             if self.your_position > 2:
                 self.your_position -= 1
-                self.total_customers += 1
                 queue_label.configure(text=f"You are {self.your_position}/{self.total_customers}. There are {self.your_position - 1} people in front of you.")
-                queue_window.after(3000, update_queue_label)
             elif self.your_position == 2:
                 queue_label.configure(text=f"You are {self.your_position}/{self.total_customers}. There are {self.your_position - 1} people in front of you.")
                 queue_window.after(3000, show_you_are_in)
             else:
                 queue_label.configure(text="You are in!")
                 queue_window.after(3000, close_window)
+            queue_window.after(3000, update_queue_label)  # Re-schedule the update
+        # Initialize the total customers outside of the loop
+        self.total_customers = 25
+
+
 
         # Create label to display queue status
         queue_label = ctk.CTkLabel(queue_window, text=f"You are {self.your_position}/{self.total_customers}. There are {self.your_position - 1} people in front of you.", font=("Helvetica", 12))
