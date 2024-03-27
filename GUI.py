@@ -38,7 +38,9 @@ class GameShopGUI:
     def __init__(self, master):
         self.master = master
         master.title("GameShop")
-        master.attributes("-fullscreen", True)  # Set window to fit the user's screen
+        width = master.winfo_screenwidth()
+        height = master.winfo_screenheight()
+        master.geometry(f"{width}x{height}")
 
         self.queue = Queue()
         self.total_customers = 25
@@ -59,7 +61,9 @@ class GameShopGUI:
         # Create a new window for the queue updates
         queue_window = tk.Toplevel(self.master)
         queue_window.title("GameShop")
-        queue_window.attributes("-fullscreen", True)  # Set window to fit the user's screen
+        width = queue_window.winfo_screenwidth()
+        height = queue_window.winfo_screenheight()
+        queue_window.geometry(f"{width}x{height}")
 
         def update_queue_label():
             """This function is used to update the queue and keep track of position"""
