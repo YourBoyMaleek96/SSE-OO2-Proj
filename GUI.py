@@ -5,7 +5,7 @@ from GameList import Game, games_data
 
 # Constant for color theme
 BLUE = "#1f6aa5"
-
+DARK = "gray14"
 class Node:
     def __init__(self, value):
         self.value = value
@@ -35,12 +35,7 @@ class Queue:
             self.tail = None
         self.size -= 1
         return value
-import tkinter as tk
-from tkinter import ttk, messagebox
-from GameList import Game, games_data
 
-# Constant for color theme
-BLUE = "#1f6aa5"
 
 class GameShopGUI:
     def __init__(self, master):
@@ -91,42 +86,83 @@ class GameShopGUI:
         update_queue_label()
 
     def show_game_info_page(self, parent):
-        # Create a new window for displaying game information
+        """Show the game info page and allows you to add games to cart"""
         game_info_window = tk.Toplevel(parent)
-        game_info_window.title("Game Information")
+        game_info_window.title("Welcome to  Game Shop")
         width = game_info_window.winfo_screenwidth()
         height = game_info_window.winfo_screenheight()
         game_info_window.geometry(f"{width}x{height}")
 
-        # Create a frame to contain the Treeview
+        # Create a frame to contain the game information
         frame = tk.Frame(game_info_window)
-        frame.pack(fill=tk.BOTH, expand=True)
+        frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)  # Add padding
 
-        # Create a Treeview widget for displaying the game information
-        tree = ttk.Treeview(frame, columns=("Title", "Price", "Review", "Genre", "ESRB Rating", "Add to Cart"), show="headings")
-        tree.pack(fill=tk.BOTH, expand=True)
+        # Create a Canvas widget for scrolling
+        canvas = tk.Canvas(frame)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        # Define column headings
-        tree.heading("Title", text="Title", command=lambda: self.sort_column(tree, "Title"))
-        tree.heading("Price", text="Price", command=lambda: self.sort_column(tree, "Price"))
-        tree.heading("Review", text="Review", command=lambda: self.sort_column(tree, "Review"))
-        tree.heading("Genre", text="Genre", command=lambda: self.sort_column(tree, "Genre"))
-        tree.heading("ESRB Rating", text="ESRB Rating", command=lambda: self.sort_column(tree, "ESRB Rating"))
-        tree.heading("Add to Cart", text="Add to Cart")
+        # Create a scrollbar for the canvas
+        v_scroll = tk.Scrollbar(frame, orient="vertical", command=canvas.yview)
+        v_scroll.pack(side=tk.RIGHT, fill="y")
 
-        # Insert game data into the Treeview with add to cart buttons
-        for game_data in games_data:
+        # Configure canvas to use scrollbar
+        canvas.configure(yscrollcommand=v_scroll.set)
+        canvas.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+        # Create a frame inside the canvas
+        inner_frame = tk.Frame(canvas)
+        canvas.create_window((0, 0), window=inner_frame, anchor="nw")
+
+        # Create labels for column headers
+        title_header_label = tk.Label(inner_frame, text="Title", font=("Helvetica", 14))
+        title_header_label.grid(row=0, column=0, padx=10)
+        price_header_label = tk.Label(inner_frame, text="Price", font=("Helvetica", 14))
+        price_header_label.grid(row=0, column=1, padx=10)
+        esrb_header_label = tk.Label(inner_frame, text="ESRB Rating", font=("Helvetica", 14))
+        esrb_header_label.grid(row=0, column=2, padx=10)
+        genre_header_label = tk.Label(inner_frame, text="Genre", font=("Helvetica", 14))
+        genre_header_label.grid(row=0, column=3, padx=10)
+
+        # Insert game data with buttons
+        for idx, game_data in enumerate(games_data, start=1):
             game = Game(**game_data)
-            tree.insert("", "end", values=(game.title, game.price, game.review, game.genre, game.esrb_rating, ""),
-                        tags=game.title)
-            button = tk.Button(game_info_window, text="Add", command=lambda game=game: self.add_to_cart(game))
-            tree.set(tree.tag_has(game.title), "Add to Cart", button)
 
-        # Create a label to display welcome message
-        welcome_label = tk.Label(game_info_window, text="Welcome to GameShop", font=("Helvetica", 24), bg=BLUE, fg="white")
-        welcome_label.pack(fill=tk.X, pady=(50, 0))
+            # Display game title
+            title_label = tk.Label(inner_frame, text=game.title, font=("Helvetica", 14), anchor="center")
+            title_label.grid(row=idx * 2, column=0, pady=(10, 0))
+
+            # Display game price
+            price_label = tk.Label(inner_frame, text=f"${game.price}", font=("Helvetica", 14), anchor="center")
+            price_label.grid(row=idx * 2, column=1, pady=(10, 0))
+
+            # Display game ESRB rating
+            esrb_label = tk.Label(inner_frame, text=game.esrb_rating, font=("Helvetica", 14), anchor="center")
+            esrb_label.grid(row=idx * 2, column=2, pady=(10, 0))
+
+            # Display game genre
+            genre_label = tk.Label(inner_frame, text=game.genre, font=("Helvetica", 14), anchor="center")
+            genre_label.grid(row=idx * 2, column=3, pady=(10, 0))
+
+            # Add spacing between each game entry
+            tk.Label(inner_frame, text="", font=("Helvetica", 14)).grid(row=idx * 2 + 1, columnspan=4)
+
+           # Add to Cart button
+            add_to_cart_button = tk.Button(inner_frame, text="Add to Cart" , bg = BLUE, command=lambda g=game: self.add_to_cart(g))
+            add_to_cart_button.grid(row=idx * 2, column=4, pady=(10, 0))
+
+        # Bind the inner frame to the canvas
+        inner_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+        # Add the canvas to the window
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Add padding to the bottom for better spacing
+        tk.Label(inner_frame, text="", font=("Helvetica", 14)).grid(row=len(games_data) * 2 + 2, columnspan=6, pady=(10, 0))
 
 
+
+
+    
 
 if __name__ == "__main__":
     root = tk.Tk()
