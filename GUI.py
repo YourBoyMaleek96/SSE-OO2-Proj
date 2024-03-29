@@ -36,7 +36,6 @@ class Queue:
         self.size -= 1
         return value
 
-
 class GameShopGUI:
     def __init__(self, master):
         self.master = master
@@ -85,17 +84,29 @@ class GameShopGUI:
         # Start updating the queue label and countdown
         update_queue_label()
 
+    def sort_games(self, criterion="title", descending=False):
+        """Sorts the list of games based on a given criterion."""
+        if criterion == "title":
+            sorted_games = sorted(games_data, key=lambda x: x[criterion], reverse=descending)
+        elif criterion in ["price", "review"]:
+            sorted_games = sorted(games_data, key=lambda x: float(x[criterion]), reverse=descending)
+        else:
+            sorted_games = games_data
+        return sorted_games
+
     def show_game_info_page(self, parent):
-        """Show the game info page and allows you to add games to cart"""
         game_info_window = tk.Toplevel(parent)
-        game_info_window.title("Welcome to  Game Shop")
+        game_info_window.title("Welcome to Game Shop")
         width = game_info_window.winfo_screenwidth()
         height = game_info_window.winfo_screenheight()
         game_info_window.geometry(f"{width}x{height}")
 
+        # Sort games alphabetically A-Z by default
+        sorted_games_data = self.sort_games("title", False)
+
         # Create a frame to contain the game information
         frame = tk.Frame(game_info_window)
-        frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)  # Add padding
+        frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         # Create a Canvas widget for scrolling
         canvas = tk.Canvas(frame)
@@ -113,56 +124,41 @@ class GameShopGUI:
         inner_frame = tk.Frame(canvas)
         canvas.create_window((0, 0), window=inner_frame, anchor="nw")
 
-        # Create labels for column headers
-        title_header_label = tk.Label(inner_frame, text="Title", font=("Helvetica", 14))
-        title_header_label.grid(row=0, column=0, padx=10)
-        price_header_label = tk.Label(inner_frame, text="Price", font=("Helvetica", 14))
-        price_header_label.grid(row=0, column=1, padx=10)
-        esrb_header_label = tk.Label(inner_frame, text="ESRB Rating", font=("Helvetica", 14))
-        esrb_header_label.grid(row=0, column=2, padx=10)
-        genre_header_label = tk.Label(inner_frame, text="Genre", font=("Helvetica", 14))
-        genre_header_label.grid(row=0, column=3, padx=10)
+        # Add column headers
+        headers = ["Title", "Price", "Review Score", "Genre", "ESRB Rating"]
+        for idx, header in enumerate(headers):
+            header_label = tk.Label(inner_frame, text=header, font=("Helvetica", 14))
+            header_label.grid(row=0, column=idx, padx=10)
 
-        # Insert game data with buttons
-        for idx, game_data in enumerate(games_data, start=1):
+        # Display sorted game data
+        for idx, game_data in enumerate(sorted_games_data, start=1):
             game = Game(**game_data)
 
-            # Display game title
-            title_label = tk.Label(inner_frame, text=game.title, font=("Helvetica", 14), anchor="center")
-            title_label.grid(row=idx * 2, column=0, pady=(10, 0))
-
-            # Display game price
-            price_label = tk.Label(inner_frame, text=f"${game.price}", font=("Helvetica", 14), anchor="center")
-            price_label.grid(row=idx * 2, column=1, pady=(10, 0))
-
-            # Display game ESRB rating
-            esrb_label = tk.Label(inner_frame, text=game.esrb_rating, font=("Helvetica", 14), anchor="center")
-            esrb_label.grid(row=idx * 2, column=2, pady=(10, 0))
-
-            # Display game genre
-            genre_label = tk.Label(inner_frame, text=game.genre, font=("Helvetica", 14), anchor="center")
-            genre_label.grid(row=idx * 2, column=3, pady=(10, 0))
+            # Display Game Title, Price, Review Score, Genre, and ESRB Rating
+            tk.Label(inner_frame, text=game.title, font=("Helvetica", 14), anchor="center").grid(row=idx, column=0, pady=(10, 0))
+            tk.Label(inner_frame, text=f"${game.price}", font=("Helvetica", 14), anchor="center").grid(row=idx, column=1, pady=(10, 0))
+            tk.Label(inner_frame, text=f"{game.review} / 5", font=("Helvetica", 14), anchor="center").grid(row=idx, column=2, pady=(10, 0))
+            tk.Label(inner_frame, text=game.genre, font=("Helvetica", 14), anchor="center").grid(row=idx, column=3, pady=(10, 0))
+            tk.Label(inner_frame, text=game.esrb_rating, font=("Helvetica", 14), anchor="center").grid(row=idx, column=4, pady=(10, 0))
 
             # Add spacing between each game entry
             tk.Label(inner_frame, text="", font=("Helvetica", 14)).grid(row=idx * 2 + 1, columnspan=4)
 
-           # Add to Cart button
-            add_to_cart_button = tk.Button(inner_frame, text="Add to Cart" , bg = BLUE, command=lambda g=game: self.add_to_cart(g))
-            add_to_cart_button.grid(row=idx * 2, column=4, pady=(10, 0))
+            # Add to Cart button
+            add_to_cart_button = tk.Button(inner_frame, text="Add to Cart", bg=BLUE)
+            add_to_cart_button.grid(row=idx, column=5, padx=10, pady=(10, 0))
 
-        # Bind the inner frame to the canvas
-        inner_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.configure(scrollregion=canvas.bbox("all"))
 
         # Add the canvas to the window
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         # Add padding to the bottom for better spacing
-        tk.Label(inner_frame, text="", font=("Helvetica", 14)).grid(row=len(games_data) * 2 + 2, columnspan=6, pady=(10, 0))
+        tk.Label(inner_frame, text="", font=("Helvetica", 14)).grid(row=len(sorted_games_data) + 1, column=0, pady=(10, 20))
 
+        # Bind the inner frame to the canvas
+        inner_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
-
-
-    
 
 if __name__ == "__main__":
     root = tk.Tk()
