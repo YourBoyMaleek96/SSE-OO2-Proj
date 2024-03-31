@@ -74,7 +74,6 @@ class GameShopGUI:
                 queue_label.config(text=f"You are {self.your_position}/{self.total_customers}. There are {self.your_position - 1} people in front of you.")
                 queue_window.after(2000, update_queue_label)  # Re-schedule the update
             else:
-                queue_label.config(text="Welcome to GameShop")
                 self.show_game_info_page(queue_window)
 
         # Create label to display queue status spanning across the top
@@ -94,8 +93,9 @@ class GameShopGUI:
             sorted_games = games_data
         return sorted_games
 
-    def show_game_info_page(self, parent):
-        game_info_window = tk.Toplevel(parent)
+    def show_game_info_page(self, queue_window):
+        queue_window.destroy()
+        game_info_window = tk.Toplevel(self.master)
         game_info_window.title("Welcome to Game Shop")
         width = game_info_window.winfo_screenwidth()
         height = game_info_window.winfo_screenheight()
