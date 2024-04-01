@@ -63,7 +63,9 @@ class GameShopGUI:
         height = master.winfo_screenheight()
         master.geometry(f"{width}x{height}")
         self.cart = Stack()
+        self.temp_cart = Stack()
         self.cart_display = None
+        self.cart_listbox = None
 
         self.queue = Queue()
         self.total_customers = 25
@@ -185,23 +187,50 @@ class GameShopGUI:
         # Bind the inner frame to the canvas
         inner_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
-        # Create a Text widget for the cart display
-        self.cart_display = tk.Text(game_info_window, height=10, width=50)
-        self.cart_display.pack(pady=20)
-        self.cart_display.insert(tk.END, "Your Cart:\n")
-        self.cart_display.config(state=tk.DISABLED)  # Prevent user editing
+        # Create the Remove from Cart button
+        self.remove_from_cart_button = tk.Button(game_info_window, text="Remove from Cart", bg="red", fg="white", command=self.remove_selected_from_cart)
+        self.remove_from_cart_button.pack(pady=10)
+
+        # Initialize the cart Listbox for displaying and selecting cart items
+        self.cart_listbox = tk.Listbox(game_info_window, height=10, width=50)
+        self.cart_listbox.pack(pady=20)
 
     def update_cart_display(self):
-        # Clear current contents of the cart display (re-enable it first)
-        self.cart_display.config(state=tk.NORMAL)
-        self.cart_display.delete("1.0", tk.END)
-        self.cart_display.insert(tk.END, "Your Cart:\n")
+        # Convert stack to list for display
+        cart_list = []
+        while not self.cart.is_empty():
+            item = self.cart.pop()
+            cart_list.append(item)
+            self.temp_cart.push(item)
 
-        # Iterate through the cart stack and display each item
-        for item in reversed(self.cart.items):  # Reverse to display the last item added at the top
-            self.cart_display.insert(tk.END, f"{item['title']} - ${item['price']}\n")
+        # Update Listbox
+        self.cart_listbox.delete(0, tk.END)
+        for item in reversed(cart_list):  # Reverse to maintain order
+            self.cart_listbox.insert(tk.END, f"{item['title']} - ${item['price']}")
 
-        self.cart_display.config(state=tk.DISABLED)  # Re-disable editing
+        # Transfer items back to the original cart
+        while not self.temp_cart.is_empty():
+            self.cart.push(self.temp_cart.pop())
+    
+    def remove_selected_from_cart(self):
+        selection = self.cart_listbox.curselection()
+        if selection:
+            selected_index = selection[0]
+            remove_count = self.cart.size() - selected_index - 1  # Calculate how many items to remove before reaching the selected one
+            
+            # Temporarily transfer items to the temporary stack
+            for _ in range(remove_count):
+                self.temp_cart.push(self.cart.pop())
+                
+            self.cart.pop()  # Remove the selected item
+            
+            # Transfer items back to the original cart
+            while not self.temp_cart.is_empty():
+                self.cart.push(self.temp_cart.pop())
+
+            self.update_cart_display()  # Refresh the cart display
+        else:
+            messagebox.showinfo("Selection Error", "Please select an item to remove.")
 
 if __name__ == "__main__":
     root = tk.Tk()
