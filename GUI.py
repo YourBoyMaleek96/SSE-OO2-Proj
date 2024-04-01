@@ -174,6 +174,7 @@ class GameShopGUI:
             header_label.grid(row=0, column=idx, padx=10)
 
         def add_to_cart(game_data):
+            """Add a new game to the cart"""
             self.cart.push(game_data)
             self.update_cart_display()
 
@@ -197,12 +198,11 @@ class GameShopGUI:
 
         canvas.configure(scrollregion=canvas.bbox("all"))
 
-        # Add the canvas to the window
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        # Add the canvas to the window using grid 
+        canvas.grid(row=0, column=2, rowspan=2, sticky="nsew")
 
         # Add padding to the bottom for better spacing
         tk.Label(inner_frame, text="", font=("Helvetica", 14)).grid(row=len(sorted_games_data) + 1, column=0, pady=(10, 20))
-
 
         # Bind the inner frame to the canvas
         inner_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
@@ -219,7 +219,7 @@ class GameShopGUI:
         self.total_cost_label.pack(pady=10)  # Adjust padding as needed
 
     def update_cart_display(self):
-        # Convert stack to list for display
+        """Convert stack to list to display cart items"""
         cart_list = []
         total_cost = 0  # Initialize total cost
         
@@ -246,6 +246,7 @@ class GameShopGUI:
 
     
     def remove_selected_from_cart(self):
+        """Remove selected games from cart"""
         selection = self.cart_listbox.curselection()
         if selection:
             selected_index = selection[0]
@@ -266,6 +267,7 @@ class GameShopGUI:
             messagebox.showinfo("Selection Error", "Please select an item to remove.")
 
     def calculate_total_cost(self):
+        """ Calculate the total cost of items in the cart"""
         total_cost = 0
         temp_stack = Stack()  # Temporary stack to hold items while calculating total cost
 
