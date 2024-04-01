@@ -210,26 +210,35 @@ class GameShopGUI:
         # Bind the inner frame to the canvas
         inner_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
-        # Create the Remove from Cart button
-        self.remove_from_cart_button = tk.Button(game_info_window, text="Remove from Cart", bg="red", fg="white", command=self.remove_selected_from_cart)
-        self.remove_from_cart_button.pack(pady=10)
-
-        # Initialize the cart Listbox for displaying and selecting cart items
-        self.cart_listbox = tk.Listbox(game_info_window, height=10, width=50)
-        self.cart_listbox.pack(pady=20, side=tk.RIGHT, padx=10)  
-
-        self.total_cost_label = tk.Label(game_info_window, text="Total Cost: $0.00")
-        self.total_cost_label.pack(pady=10)  # Adjust padding as needed
-        
+        Bottom_frame = tk.Frame(game_info_window)
+        Bottom_frame.pack(side = tk.BOTTOM, anchor= 'w', padx=10, pady=10)
+         
         #Keep track of game last added to cart
         self.last_added_genre = None
+        
+
+         # Create the Remove from Cart button
+        #self.remove_from_cart_button = tk.Button(Bottom_frame, text="Remove from Cart", bg="red", fg="white", command=self.remove_selected_from_cart)
+        #self.remove_from_cart_button.pack(pady=10)
+       
         # Games you may like Listbox
-        self.recommended_listbox = tk.Listbox(game_info_window, height=5, width=50)
+        self.recommended_listbox = tk.Listbox(Bottom_frame, height=10, width=50)
         self.recommended_listbox.insert(0, "Games you may also like:")
-        self.recommended_listbox.pack(pady=(20,5), side=tk.LEFT, padx=10)  
+        self.recommended_listbox.pack(side=tk.LEFT, padx=5, pady =15)  
         self.update_recommended_games()
 
+     
+        # Initialize the cart Listbox for displaying and selecting cart items
+        self.cart_listbox = tk.Listbox(Bottom_frame, height=10, width=50)
+        self.cart_listbox.pack(side=tk.LEFT, padx=25)  
 
+        self.total_cost_label = tk.Label(Bottom_frame, text="Total Cost: $0.00")
+        self.total_cost_label.pack(pady=10)  # Adjust padding as needed
+        
+         # Create the Remove from Cart button
+        self.remove_from_cart_button = tk.Button(Bottom_frame, text="Remove from Cart", bg="red", fg="white", command=self.remove_selected_from_cart)
+        self.remove_from_cart_button.pack(pady=10)
+    
     def update_cart_display(self):
         """Convert stack to list to display cart items"""
         cart_list = []
