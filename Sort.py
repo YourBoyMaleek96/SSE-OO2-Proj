@@ -1,3 +1,4 @@
+from GameList import games_data
 
 def merge_sort(arr, key=lambda x: x):
     """Sorts arr from A to Z based on the key function."""
@@ -23,7 +24,7 @@ def merge_sort(arr, key=lambda x: x):
     right = merge_sort(arr[mid:], key)
     return merge(left, right)
 
-def quicksort(arr, key=lambda x: x):
+def quick_sort(arr, key=lambda x: x):
     """Sorts arr from Z to A based on the key function."""
     if len(arr) <= 1:
         return arr
@@ -31,7 +32,7 @@ def quicksort(arr, key=lambda x: x):
         pivot = arr[0]
         less = [x for x in arr[1:] if key(x) >= key(pivot)]
         greater = [x for x in arr[1:] if key(x) < key(pivot)]
-        return quicksort(less, key) + [pivot] + quicksort(greater, key)
+        return quick_sort(less, key) + [pivot] + quick_sort(greater, key)
 
 def selection_sort(arr, key=lambda x: x):
     """Sorts arr from high to low based on the key function."""
@@ -91,3 +92,51 @@ def heap_sort(arr, key=lambda x: x):
         heapify(arr, i, 0, key)
 
     return arr
+
+def sort_games(criteria):
+    """
+    Sorts the games based on the specified criteria.
+    - 'title_az': Alphabetically A-Z (merge_sort)
+    - 'title_za': Alphabetically Z-A (quick_sort)
+    - 'price_high_low': Price High to Low (selection_sort)
+    - 'price_low_high': Price Low to High (bubble_sort)
+    - 'review_high_low': Review Score High to Low (insertion_sort)
+    - 'review_low_high': Review Score Low to High (heap_sort)
+    """
+    if criteria == 'title_az':
+        return merge_sort(games_data, key=lambda x: x['title'])
+    elif criteria == 'title_za':
+        return quick_sort(games_data, key=lambda x: x['title'])
+    elif criteria == 'price_high_low':
+        return selection_sort(games_data, key=lambda x: x['price'])
+    elif criteria == 'price_low_high':
+        return bubble_sort(games_data, key=lambda x: x['price'])
+    elif criteria == 'review_high_low':
+        return insertion_sort(games_data, key=lambda x: x['review'])
+    elif criteria == 'review_low_high':
+        sorted_games = heap_sort(games_data, key=lambda x: x['review'])
+        return sorted_games[::-1]
+    else:
+        raise ValueError("Invalid sorting criteria")
+
+# Assuming the sorting functions are already defined above this section...
+
+def sort_and_print_games(sorted_games):
+    """Utility function to print sorted games with all their details."""
+    for game in sorted_games:
+        print(f"{game['title']} - ${game['price']} - Rating: {game['review']} - Genre: {game['genre']} - ESRB: {game['esrb_rating']}")
+
+def test_sorting(criteria):
+    """Test sorting based on different criteria."""
+    print(f"\nSorting games by {criteria.replace('_', ' ').upper()}:\n")
+    sorted_games = sort_games(criteria)
+    sort_and_print_games(sorted_games)
+
+if __name__ == "__main__":
+    # Test cases for each sorting criterion
+    criteria_list = [
+        'title_az', 'title_za', 'price_high_low', 'price_low_high', 'review_high_low', 'review_low_high'
+    ]
+    for criteria in criteria_list:
+        test_sorting(criteria)
+
