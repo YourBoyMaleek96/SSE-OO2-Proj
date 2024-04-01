@@ -35,6 +35,25 @@ class Queue:
             self.tail = None
         self.size -= 1
         return value
+    
+class Stack:
+    def __init__(self):
+        self.items = []
+    
+    def push(self, item):
+        self.items.append(item)
+    
+    def pop(self):
+        return self.items.pop() if not self.is_empty() else None
+    
+    def peek(self):
+        return self.items[-1] if not self.is_empty() else None
+    
+    def is_empty(self):
+        return len(self.items) == 0
+    
+    def size(self):
+        return len(self.items)
 
 class GameShopGUI:
     def __init__(self, master):
@@ -43,6 +62,10 @@ class GameShopGUI:
         width = master.winfo_screenwidth()
         height = master.winfo_screenheight()
         master.geometry(f"{width}x{height}")
+        self.cart = Stack()
+        self.temp_cart = Stack()
+        self.cart_display = None
+        self.cart_listbox = None
 
         self.queue = Queue()
         self.total_customers = 25
@@ -150,6 +173,10 @@ class GameShopGUI:
             header_label = tk.Label(inner_frame, text=header, font=("Helvetica", 14))
             header_label.grid(row=0, column=idx, padx=10)
 
+        def add_to_cart(game_data):
+            self.cart.push(game_data)
+            self.update_cart_display()
+
         # Display sorted game data
         sorted_games_data = self.sort_games("title", False)
         for idx, game_data in enumerate(sorted_games_data, start=1):
@@ -163,12 +190,96 @@ class GameShopGUI:
             tk.Label(inner_frame, text=game.esrb_rating, font=("Helvetica", 14), anchor="center").grid(row=idx, column=4, pady=(10, 0), sticky= "nsew")
         
             # Add to Cart button
-            add_to_cart_button = tk.Button(inner_frame, text="Add to Cart", bg="blue")
+
+            add_to_cart_button = tk.Button(inner_frame, text="Add to Cart", bg=BLUE, command=lambda gd=game_data: add_to_cart(gd))
             add_to_cart_button.grid(row=idx, column=5, padx=10, pady=(10, 0))
+
+
+        canvas.configure(scrollregion=canvas.bbox("all"))
+
+        # Add the canvas to the window
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Add padding to the bottom for better spacing
+        tk.Label(inner_frame, text="", font=("Helvetica", 14)).grid(row=len(sorted_games_data) + 1, column=0, pady=(10, 20))
+
 
         # Bind the inner frame to the canvas
         inner_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
+        # Create the Remove from Cart button
+        self.remove_from_cart_button = tk.Button(game_info_window, text="Remove from Cart", bg="red", fg="white", command=self.remove_selected_from_cart)
+        self.remove_from_cart_button.pack(pady=10)
+
+        # Initialize the cart Listbox for displaying and selecting cart items
+        self.cart_listbox = tk.Listbox(game_info_window, height=10, width=50)
+        self.cart_listbox.pack(pady=20)
+
+        self.total_cost_label = tk.Label(game_info_window, text="Total Cost: $0.00")
+        self.total_cost_label.pack(pady=10)  # Adjust padding as needed
+
+    def update_cart_display(self):
+        # Convert stack to list for display
+        cart_list = []
+        total_cost = 0  # Initialize total cost
+        
+        while not self.cart.is_empty():
+            item = self.cart.pop()
+            cart_list.append(item)
+            self.temp_cart.push(item)
+            total_cost += item['price']  # Add item's price to total cost
+
+        # Update Listbox
+        self.cart_listbox.delete(0, tk.END)
+        for item in reversed(cart_list):  # Reverse to maintain order
+            self.cart_listbox.insert(tk.END, f"{item['title']} - ${item['price']}")
+
+        # Transfer items back to the original cart
+        while not self.temp_cart.is_empty():
+            self.cart.push(self.temp_cart.pop())
+
+        # Update the total cost display
+        # Ensure you have initialized this label somewhere in your GUI setup
+        # For example: self.total_cost_label = tk.Label(your_window, text="Total Cost: $0.00")
+        # And added it to the layout: self.total_cost_label.pack()
+        self.total_cost_label.config(text=f"Total Cost: ${total_cost:.2f}")
+
+    
+    def remove_selected_from_cart(self):
+        selection = self.cart_listbox.curselection()
+        if selection:
+            selected_index = selection[0]
+            remove_count = self.cart.size() - selected_index - 1  # Calculate how many items to remove before reaching the selected one
+            
+            # Temporarily transfer items to the temporary stack
+            for _ in range(remove_count):
+                self.temp_cart.push(self.cart.pop())
+                
+            self.cart.pop()  # Remove the selected item
+            
+            # Transfer items back to the original cart
+            while not self.temp_cart.is_empty():
+                self.cart.push(self.temp_cart.pop())
+
+            self.update_cart_display()  # Refresh the cart display
+        else:
+            messagebox.showinfo("Selection Error", "Please select an item to remove.")
+
+    def calculate_total_cost(self):
+        total_cost = 0
+        temp_stack = Stack()  # Temporary stack to hold items while calculating total cost
+
+        # Pop items from the cart to calculate total cost and store them temporarily
+        while not self.cart.is_empty():
+            item = self.cart.pop()
+            total_cost += item['price']  # Assuming each item is a dictionary with a 'price' key
+            temp_stack.push(item)
+        
+        # Push items back into the cart from the temporary stack
+        while not temp_stack.is_empty():
+            self.cart.push(temp_stack.pop())
+        
+        return total_cost
 
 if __name__ == "__main__":
     root = tk.Tk()
