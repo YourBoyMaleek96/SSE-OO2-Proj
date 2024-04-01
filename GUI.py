@@ -35,6 +35,25 @@ class Queue:
             self.tail = None
         self.size -= 1
         return value
+    
+class Stack:
+    def __init__(self):
+        self.items = []
+    
+    def push(self, item):
+        self.items.append(item)
+    
+    def pop(self):
+        return self.items.pop() if not self.is_empty() else None
+    
+    def peek(self):
+        return self.items[-1] if not self.is_empty() else None
+    
+    def is_empty(self):
+        return len(self.items) == 0
+    
+    def size(self):
+        return len(self.items)
 
 class GameShopGUI:
     def __init__(self, master):
@@ -43,6 +62,8 @@ class GameShopGUI:
         width = master.winfo_screenwidth()
         height = master.winfo_screenheight()
         master.geometry(f"{width}x{height}")
+        self.cart = Stack()
+        self.cart_display = None
 
         self.queue = Queue()
         self.total_customers = 25
@@ -130,6 +151,10 @@ class GameShopGUI:
             header_label = tk.Label(inner_frame, text=header, font=("Helvetica", 14))
             header_label.grid(row=0, column=idx, padx=10)
 
+        def add_to_cart(game_data):
+            self.cart.push(game_data)
+            self.update_cart_display()
+
         # Display sorted game data
         for idx, game_data in enumerate(sorted_games_data, start=1):
             game = Game(**game_data)
@@ -145,8 +170,9 @@ class GameShopGUI:
             tk.Label(inner_frame, text="", font=("Helvetica", 14)).grid(row=idx * 2 + 1, columnspan=4)
 
             # Add to Cart button
-            add_to_cart_button = tk.Button(inner_frame, text="Add to Cart", bg=BLUE)
+            add_to_cart_button = tk.Button(inner_frame, text="Add to Cart", bg=BLUE, command=lambda gd=game_data: add_to_cart(gd))
             add_to_cart_button.grid(row=idx, column=5, padx=10, pady=(10, 0))
+
 
         canvas.configure(scrollregion=canvas.bbox("all"))
 
@@ -159,6 +185,23 @@ class GameShopGUI:
         # Bind the inner frame to the canvas
         inner_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
+        # Create a Text widget for the cart display
+        self.cart_display = tk.Text(game_info_window, height=10, width=50)
+        self.cart_display.pack(pady=20)
+        self.cart_display.insert(tk.END, "Your Cart:\n")
+        self.cart_display.config(state=tk.DISABLED)  # Prevent user editing
+
+    def update_cart_display(self):
+        # Clear current contents of the cart display (re-enable it first)
+        self.cart_display.config(state=tk.NORMAL)
+        self.cart_display.delete("1.0", tk.END)
+        self.cart_display.insert(tk.END, "Your Cart:\n")
+
+        # Iterate through the cart stack and display each item
+        for item in reversed(self.cart.items):  # Reverse to display the last item added at the top
+            self.cart_display.insert(tk.END, f"{item['title']} - ${item['price']}\n")
+
+        self.cart_display.config(state=tk.DISABLED)  # Re-disable editing
 
 if __name__ == "__main__":
     root = tk.Tk()
