@@ -195,13 +195,19 @@ class GameShopGUI:
         self.cart_listbox = tk.Listbox(game_info_window, height=10, width=50)
         self.cart_listbox.pack(pady=20)
 
+        self.total_cost_label = tk.Label(game_info_window, text="Total Cost: $0.00")
+        self.total_cost_label.pack(pady=10)  # Adjust padding as needed
+
     def update_cart_display(self):
         # Convert stack to list for display
         cart_list = []
+        total_cost = 0  # Initialize total cost
+        
         while not self.cart.is_empty():
             item = self.cart.pop()
             cart_list.append(item)
             self.temp_cart.push(item)
+            total_cost += item['price']  # Add item's price to total cost
 
         # Update Listbox
         self.cart_listbox.delete(0, tk.END)
@@ -211,6 +217,13 @@ class GameShopGUI:
         # Transfer items back to the original cart
         while not self.temp_cart.is_empty():
             self.cart.push(self.temp_cart.pop())
+
+        # Update the total cost display
+        # Ensure you have initialized this label somewhere in your GUI setup
+        # For example: self.total_cost_label = tk.Label(your_window, text="Total Cost: $0.00")
+        # And added it to the layout: self.total_cost_label.pack()
+        self.total_cost_label.config(text=f"Total Cost: ${total_cost:.2f}")
+
     
     def remove_selected_from_cart(self):
         selection = self.cart_listbox.curselection()
@@ -231,6 +244,22 @@ class GameShopGUI:
             self.update_cart_display()  # Refresh the cart display
         else:
             messagebox.showinfo("Selection Error", "Please select an item to remove.")
+
+    def calculate_total_cost(self):
+        total_cost = 0
+        temp_stack = Stack()  # Temporary stack to hold items while calculating total cost
+
+        # Pop items from the cart to calculate total cost and store them temporarily
+        while not self.cart.is_empty():
+            item = self.cart.pop()
+            total_cost += item['price']  # Assuming each item is a dictionary with a 'price' key
+            temp_stack.push(item)
+        
+        # Push items back into the cart from the temporary stack
+        while not temp_stack.is_empty():
+            self.cart.push(temp_stack.pop())
+        
+        return total_cost
 
 if __name__ == "__main__":
     root = tk.Tk()
