@@ -46,7 +46,7 @@ class GameShopGUI:
 
         self.queue = Queue()
         self.total_customers = 25
-        self.your_position = 2
+        self.your_position = 10
 
         # Create banner label spanning across the top
         self.banner_label = tk.Label(master, text="Welcome to GameShop", bg=BLUE, fg="white", font=("Helvetica", 24))
@@ -94,6 +94,7 @@ class GameShopGUI:
         return sorted_games
 
     def show_game_info_page(self, queue_window):
+        """Show the game information"""
         queue_window.destroy()
         game_info_window = tk.Toplevel(self.master)
         game_info_window.title("Welcome to Game Shop")
@@ -104,7 +105,8 @@ class GameShopGUI:
         # Create a frame to contain the game information and filter selection box
         frame = tk.Frame(game_info_window)
         frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-
+        frame.grid_rowconfigure(0, weight = 1)
+        frame.grid_columnconfigure(2, weight = 1)
         # Add filter selection box on the left
         filter_label = tk.Label(frame, text="Filter by:", font=("Helvetica", 12))
         filter_label.grid(row=0, column=0, padx=(0, 5), sticky="e")
@@ -136,6 +138,12 @@ class GameShopGUI:
         inner_frame = tk.Frame(canvas)
         canvas.create_window((0, 0), window=inner_frame, anchor="nw")
 
+        def UpdateScroll(event):
+            """Update the scroll bar after resizing """
+            canvas.configure(scrollregion=canvas.bbox("all"))
+        
+        inner_frame.bind("<Configure>",UpdateScroll)
+
         # Add column headers
         headers = ["Title", "Price", "Review Score", "Genre", "ESRB Rating"]
         for idx, header in enumerate(headers):
@@ -157,14 +165,9 @@ class GameShopGUI:
             # Add to Cart button
             add_to_cart_button = tk.Button(inner_frame, text="Add to Cart", bg="blue")
             add_to_cart_button.grid(row=idx, column=5, padx=10, pady=(10, 0))
-        canvas.update_idletasks()
-        canvas.configure(scrollregion=canvas.bbox("all"))
 
         # Bind the inner frame to the canvas
         inner_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        # Stretch game info 
-        frame.columnfigure(2, weight = 1) 
-        frame.rowconfigure(0, weight = 1)
 
 
 if __name__ == "__main__":
