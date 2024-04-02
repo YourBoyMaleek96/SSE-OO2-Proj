@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-from GameList import Game, games_data
+from GameList import Game, games_data, GameGraph,get_games
 import random
 
 # Constant for color theme
@@ -67,10 +67,10 @@ class GameShopGUI:
         self.temp_cart = Stack()
         self.cart_display = None
         self.cart_listbox = None
-
+        self.game_graph = None
         self.queue = Queue()
         self.total_customers = 25
-        self.your_position = 3
+        self.your_position = 10
 
         # Create banner label spanning across the top
         self.banner_label = tk.Label(master, text="Welcome to GameShop", bg=BLUE, fg="white", font=("Helvetica", 24))
@@ -83,7 +83,7 @@ class GameShopGUI:
     def access_website(self):
         """This function is used to start queue"""
         self.master.withdraw()
-
+        self.game_graph = GameGraph(get_games()) #Inatialize the game graph with Games
         # Create a new window for the queue updates
         queue_window = tk.Toplevel(self.master)
         queue_window.title("GameShop")
@@ -215,11 +215,6 @@ class GameShopGUI:
          
         #Keep track of game last added to cart
         self.last_added_genre = None
-        
-
-         # Create the Remove from Cart button
-        #self.remove_from_cart_button = tk.Button(Bottom_frame, text="Remove from Cart", bg="red", fg="white", command=self.remove_selected_from_cart)
-        #self.remove_from_cart_button.pack(pady=10)
        
         # Games you may like Listbox
         self.recommended_listbox = tk.Listbox(Bottom_frame, height=10, width=50)
@@ -286,11 +281,16 @@ class GameShopGUI:
 
     def update_recommended_games(self):
         """Update the recommended games based on the last added genre"""
+        self.recommended_listbox.delete(0, tk.END) # clear list box
+        selected_game = self.cart.peek()
         if self.last_added_genre:
             # Filter games with the same genre as the last added game
             recommended_games = [game for game in games_data if game['genre'] == self.last_added_genre]
             
-            # Ensure there are recommended games
+            # Remove the game in the cart from the recommended games
+            recommended_games = [game for game in recommended_games if game not in self.cart.items]
+            
+            # Ensure there are recommended games left
             if recommended_games:
                 # Randomly select a game from the recommended list
                 recommended_game = random.choice(recommended_games)

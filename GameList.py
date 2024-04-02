@@ -11,6 +11,24 @@ class Game:
     def display_info(self):
         return f"{self.title} - ${self.price} - Rating: {self.review} - Genre: {self.genre} - ESRB: {self.esrb_rating}"
 
+class GameGraph:
+    def __init__(self, games):
+        self.graph = {}
+        self.build_graph(games)
+
+    def build_graph(self, games):
+        for game in games:
+            if game.genre not in self.graph:
+                self.graph[game.genre] = []
+            for other_game in games:
+                if game != other_game and game.genre == other_game.genre:
+                    self.graph[game.genre].append(other_game.title)
+    
+    def get_recommendations(self, genre):
+        similar_games = self.graph.get(genre, [])
+        return similar_games
+    
+
 games_data = [
     {"title": "Grand Theft Auto 5", "price": 19.99, "review": 4.5, "genre": "Action", "esrb_rating": "Mature"},
     {"title": "Elden Ring", "price": 39.99, "review": 4.8, "genre": "Action", "esrb_rating": "Mature"},
@@ -46,5 +64,9 @@ games_data = [
 
 games = [Game(**game_data) for game_data in games_data]
 
+game_graph = GameGraph(games)
+
+def get_recommendations_for_genre(genre):
+    return game_graph.get_recommendations(genre)
 def get_games():
     return games
