@@ -1,6 +1,4 @@
-
 def merge_sort(arr, key=lambda x: x):
-    """Sorts arr from A to Z based on the key function."""
     if len(arr) <= 1:
         return arr
 
@@ -23,18 +21,16 @@ def merge_sort(arr, key=lambda x: x):
     right = merge_sort(arr[mid:], key)
     return merge(left, right)
 
-def quicksort(arr, key=lambda x: x):
-    """Sorts arr from Z to A based on the key function."""
+def quick_sort(arr, key=lambda x: x):
     if len(arr) <= 1:
         return arr
     else:
         pivot = arr[0]
         less = [x for x in arr[1:] if key(x) >= key(pivot)]
         greater = [x for x in arr[1:] if key(x) < key(pivot)]
-        return quicksort(less, key) + [pivot] + quicksort(greater, key)
+        return quick_sort(less, key) + [pivot] + quick_sort(greater, key)
 
 def selection_sort(arr, key=lambda x: x):
-    """Sorts arr from high to low based on the key function."""
     for i in range(len(arr)):
         max_idx = i
         for j in range(i+1, len(arr)):
@@ -44,7 +40,6 @@ def selection_sort(arr, key=lambda x: x):
     return arr
 
 def bubble_sort(arr, key=lambda x: x):
-    """Sorts arr from low to high based on the key function."""
     n = len(arr)
     for i in range(n):
         for j in range(0, n-i-1):
@@ -53,18 +48,17 @@ def bubble_sort(arr, key=lambda x: x):
     return arr
 
 def insertion_sort(arr, key=lambda x: x):
-    """Sorts arr from high to low based on the key function."""
     for i in range(1, len(arr)):
         key_item = arr[i]
         j = i - 1
-        while j >= 0 and key(arr[j]) < key(key_item):
+        while j >= 0 and key(arr[j]) > key(key_item):  # Updated condition for Price Low to High
             arr[j + 1] = arr[j]
             j -= 1
         arr[j + 1] = key_item
     return arr
 
+
 def heapify(arr, n, i, key=lambda x: x):
-    """Help function to maintain the heap property."""
     largest = i
     left = 2 * i + 1
     right = 2 * i + 2
@@ -80,7 +74,6 @@ def heapify(arr, n, i, key=lambda x: x):
         heapify(arr, n, largest, key)
 
 def heap_sort(arr, key=lambda x: x):
-    """Sorts arr from low to high based on the key function."""
     n = len(arr)
 
     for i in range(n // 2 - 1, -1, -1):
