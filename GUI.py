@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-from GameList import Game, games_data
+from GameList import Game, games_data, GameGraph,get_games
+import random
 
 # Constant for color theme
 BLUE = "#1f6aa5"
@@ -66,7 +67,7 @@ class GameShopGUI:
         self.temp_cart = Stack()
         self.cart_display = None
         self.cart_listbox = None
-
+        self.game_graph = None
         self.queue = Queue()
         self.total_customers = 25
         self.your_position = 10
@@ -82,7 +83,7 @@ class GameShopGUI:
     def access_website(self):
         """This function is used to start queue"""
         self.master.withdraw()
-
+        self.game_graph = GameGraph(get_games()) #Inatialize the game graph with Games
         # Create a new window for the queue updates
         queue_window = tk.Toplevel(self.master)
         queue_window.title("GameShop")
@@ -176,7 +177,9 @@ class GameShopGUI:
         def add_to_cart(game_data):
             """Add a new game to the cart"""
             self.cart.push(game_data)
+            self.last_added_genre = game_data['genre'] 
             self.update_cart_display()
+            self.update_recommended_games()
 
         # Display sorted game data
         sorted_games_data = self.sort_games("title", False)
@@ -207,17 +210,30 @@ class GameShopGUI:
         # Bind the inner frame to the canvas
         inner_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
-        # Create the Remove from Cart button
-        self.remove_from_cart_button = tk.Button(game_info_window, text="Remove from Cart", bg="red", fg="white", command=self.remove_selected_from_cart)
-        self.remove_from_cart_button.pack(pady=10)
+        Bottom_frame = tk.Frame(game_info_window)
+        Bottom_frame.pack(side = tk.BOTTOM, anchor= 'w', padx=10, pady=10)
+         
+        #Keep track of game last added to cart
+        self.last_added_genre = None
+       
+        # Games you may like Listbox
+        self.recommended_listbox = tk.Listbox(Bottom_frame, height=10, width=50)
+        self.recommended_listbox.insert(0, "Games you may also like:")
+        self.recommended_listbox.pack(side=tk.LEFT, padx=5, pady =15)  
+        self.update_recommended_games()
 
+     
         # Initialize the cart Listbox for displaying and selecting cart items
-        self.cart_listbox = tk.Listbox(game_info_window, height=10, width=50)
-        self.cart_listbox.pack(pady=20)
+        self.cart_listbox = tk.Listbox(Bottom_frame, height=10, width=50)
+        self.cart_listbox.pack(side=tk.LEFT, padx=25)  
 
-        self.total_cost_label = tk.Label(game_info_window, text="Total Cost: $0.00")
+        self.total_cost_label = tk.Label(Bottom_frame, text="Total Cost: $0.00")
         self.total_cost_label.pack(pady=10)  # Adjust padding as needed
-
+        
+         # Create the Remove from Cart button
+        self.remove_from_cart_button = tk.Button(Bottom_frame, text="Remove from Cart", bg="red", fg="white", command=self.remove_selected_from_cart)
+        self.remove_from_cart_button.pack(pady=10)
+    
     def update_cart_display(self):
         """Convert stack to list to display cart items"""
         cart_list = []
@@ -244,28 +260,54 @@ class GameShopGUI:
         # And added it to the layout: self.total_cost_label.pack()
         self.total_cost_label.config(text=f"Total Cost: ${total_cost:.2f}")
 
-    
     def remove_selected_from_cart(self):
         """Remove selected games from cart"""
         selection = self.cart_listbox.curselection()
         if selection:
             selected_index = selection[0]
-            remove_count = self.cart.size() - selected_index - 1  # Calculate how many items to remove before reaching the selected one
-            
-            # Temporarily transfer items to the temporary stack
-            for _ in range(remove_count):
-                self.temp_cart.push(self.cart.pop())
-                
-            self.cart.pop()  # Remove the selected item
-            
-            # Transfer items back to the original cart
-            while not self.temp_cart.is_empty():
-                self.cart.push(self.temp_cart.pop())
+            selected_game = self.cart.items[selected_index]
 
-            self.update_cart_display()  # Refresh the cart display
+            # Remove the selected item
+            self.cart.items.pop(selected_index)
+
+            # Update the last added genre if the removed game was the last one added
+            if selected_game['genre'] == self.last_added_genre:
+                self.last_added_genre = None
+
+            self.update_cart_display()
+            self.update_recommended_games()
         else:
             messagebox.showinfo("Selection Error", "Please select an item to remove.")
 
+    def update_recommended_games(self):
+        """Update the recommended games based on the last added genre"""
+        self.recommended_listbox.delete(0, tk.END) # clear list box
+        selected_game = self.cart.peek()
+        if self.last_added_genre:
+            # Filter games with the same genre as the last added game
+            recommended_games = [game for game in games_data if game['genre'] == self.last_added_genre]
+            
+            # Remove the game in the cart from the recommended games
+            recommended_games = [game for game in recommended_games if game not in self.cart.items]
+            
+            # Ensure there are recommended games left
+            if recommended_games:
+                # Randomly select a game from the recommended list
+                recommended_game = random.choice(recommended_games)
+                
+                # Clear and update the recommended games Listbox
+                self.recommended_listbox.delete(0, tk.END)
+                self.recommended_listbox.insert(tk.END, "Games you may also like:")
+                self.recommended_listbox.insert(tk.END, recommended_game['title'])
+            else:
+                # If no recommended games found, display a message
+                self.recommended_listbox.delete(0, tk.END)
+                self.recommended_listbox.insert(tk.END, "No recommended games found")
+        else:
+            # If no game has been added to the cart, display a message
+            self.recommended_listbox.delete(0, tk.END)
+            self.recommended_listbox.insert(tk.END, "Add a game to your cart to see recommendations")
+    
     def calculate_total_cost(self):
         """ Calculate the total cost of items in the cart"""
         total_cost = 0
