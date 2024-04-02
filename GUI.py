@@ -57,6 +57,52 @@ class Stack:
     
     def size(self):
         return len(self.items)
+    
+class BSTNode:
+    def __init__(self, genre):
+        self.genre = genre
+        self.games = []  # List to hold games of this genre
+        self.left = None
+        self.right = None
+
+class BinarySearchTree:
+    def __init__(self):
+        self.root = None
+
+    def insert(self, game):
+        if self.root is None:
+            self.root = BSTNode(game.genre)
+            self.root.games.append(game)
+        else:
+            self._insert_recursive(self.root, game)
+
+    def _insert_recursive(self, node, game):
+        if game.genre < node.genre:
+            if node.left is None:
+                node.left = BSTNode(game.genre)
+                node.left.games.append(game)
+            else:
+                self._insert_recursive(node.left, game)
+        elif game.genre > node.genre:
+            if node.right is None:
+                node.right = BSTNode(game.genre)
+                node.right.games.append(game)
+            else:
+                self._insert_recursive(node.right, game)
+        else:  # game.genre == node.genre
+            node.games.append(game)
+
+    def in_order_traversal(self):
+        """Returns a list of tuples where each tuple is (genre, [games])"""
+        games_by_genre = []
+        self._in_order_recursive(self.root, games_by_genre)
+        return games_by_genre
+
+    def _in_order_recursive(self, node, games_by_genre):
+        if node is not None:
+            self._in_order_recursive(node.left, games_by_genre)
+            games_by_genre.append((node.genre, node.games))
+            self._in_order_recursive(node.right, games_by_genre)
 
 class GameShopGUI:
     def __init__(self, master):
@@ -183,13 +229,31 @@ class GameShopGUI:
             "Price: High to Low": ("price", "descending"),
             "Price: Low to High": ("price", "ascending"),
             "Review: High to Low": ("review", "descending"),
-            "Review: Low to High": ("review", "ascending")
+            "Review: Low to High": ("review", "ascending"),
+            "Genre: Alphabetically": ("genre", "ascending")
         }
 
         if selected_option in option_mapping:
             sort_criteria, order = option_mapping[selected_option]
-            sorted_games_data = self.sort_games(sort_criteria, order)
+            if sort_criteria == 'genre':
+                # When sorting by genre, use the BST to sort the games
+                sorted_games_data = self.sort_games_by_genre()
+            else:
+                sorted_games_data = self.sort_games(sort_criteria, order)
             self.display_games(sorted_games_data)
+
+    def sort_games_by_genre(self):
+        bst = BinarySearchTree()
+        for game_data in self.games_data:
+            bst.insert(Game(**game_data))  # Insert games into the BST
+
+        sorted_genres_games = bst.in_order_traversal()  # Get sorted genres and games
+        sorted_games_data = []
+        for genre, games in sorted_genres_games:
+            # Convert game objects to dictionaries if needed
+            sorted_games_data.extend([game.__dict__ for game in games])
+        return sorted_games_data
+
 
     def show_game_info_page(self, queue_window):
         """Show the game information"""
@@ -214,7 +278,8 @@ class GameShopGUI:
             "Price: High to Low",
             "Price: Low to High",
             "Review: High to Low",
-            "Review: Low to High"
+            "Review: Low to High",
+            "Genre: Alphabetically"
         ]
         filter_combobox = ttk.Combobox(self.frame, values=filter_options, state="readonly", width=20)
         filter_combobox.current(0)  # Select the first option by default
