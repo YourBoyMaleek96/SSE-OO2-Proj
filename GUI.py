@@ -118,7 +118,7 @@ class GameShopGUI:
         self.game_graph = None
         self.queue = Queue()
         self.total_customers = 25
-        self.your_position = random.randint(3, 25) #random position in queue
+        self.your_position = random.randint(3, 23) #random position in queue form 3 to 23
         self.games_data = games_data
 
         # Create banner label spanning across the top
