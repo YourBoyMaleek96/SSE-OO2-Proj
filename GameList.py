@@ -1,6 +1,6 @@
-# Game Class and Game List
-
+#Game class
 class Game:
+    #Initialization
     def __init__(self, title, price, review, genre, esrb_rating):
         self.title = title
         self.price = price
@@ -8,14 +8,18 @@ class Game:
         self.genre = genre
         self.esrb_rating = esrb_rating
 
+    #returns children of game class
     def display_info(self):
         return f"{self.title} - ${self.price} - Rating: {self.review} - Genre: {self.genre} - ESRB: {self.esrb_rating}"
 
+#GameGraph class
 class GameGraph:
+    #Initialization
     def __init__(self, games):
         self.graph = {}
         self.build_graph(games)
 
+    #Constructs graph
     def build_graph(self, games):
         for game in games:
             if game.genre not in self.graph:
@@ -24,6 +28,7 @@ class GameGraph:
                 if game != other_game and game.genre == other_game.genre:
                     self.graph[game.genre].append(other_game.title)
     
+    #Retrieves recommeded game from graph
     def get_recommendations(self, genre):
         similar_games = self.graph.get(genre, [])
         return similar_games
@@ -66,7 +71,10 @@ games = [Game(**game_data) for game_data in games_data]
 
 game_graph = GameGraph(games)
 
+#Get recommendations based on genre
 def get_recommendations_for_genre(genre):
     return game_graph.get_recommendations(genre)
+
+#Returns games array
 def get_games():
     return games

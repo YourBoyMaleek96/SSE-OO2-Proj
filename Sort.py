@@ -1,7 +1,11 @@
+#Sorts for filters
+
+#Merge sort
 def merge_sort(arr, key=lambda x: x):
     if len(arr) <= 1:
         return arr
 
+    #Merge items
     def merge(left, right):
         result = []
         i = j = 0
@@ -21,6 +25,7 @@ def merge_sort(arr, key=lambda x: x):
     right = merge_sort(arr[mid:], key)
     return merge(left, right)
 
+#Quick sort
 def quick_sort(arr, key=lambda x: x):
     if len(arr) <= 1:
         return arr
@@ -30,6 +35,7 @@ def quick_sort(arr, key=lambda x: x):
         greater = [x for x in arr[1:] if key(x) < key(pivot)]
         return quick_sort(less, key) + [pivot] + quick_sort(greater, key)
 
+#Selection sort
 def selection_sort(arr, key=lambda x: x):
     for i in range(len(arr)):
         max_idx = i
@@ -39,6 +45,7 @@ def selection_sort(arr, key=lambda x: x):
         arr[i], arr[max_idx] = arr[max_idx], arr[i]
     return arr
 
+#Bubble sort
 def bubble_sort(arr, key=lambda x: x):
     n = len(arr)
     for i in range(n):
@@ -47,17 +54,18 @@ def bubble_sort(arr, key=lambda x: x):
                 arr[j], arr[j+1] = arr[j+1], arr[j]
     return arr
 
+#Insertion sort
 def insertion_sort(arr, key=lambda x: x):
     for i in range(1, len(arr)):
         key_item = arr[i]
         j = i - 1
-        while j >= 0 and key(arr[j]) > key(key_item):  # Updated condition for Price Low to High
+        while j >= 0 and key(arr[j]) > key(key_item):
             arr[j + 1] = arr[j]
             j -= 1
         arr[j + 1] = key_item
     return arr
 
-
+#Heap creation
 def heapify(arr, n, i, key=lambda x: x):
     largest = i
     left = 2 * i + 1
@@ -73,6 +81,7 @@ def heapify(arr, n, i, key=lambda x: x):
         arr[i], arr[largest] = arr[largest], arr[i]
         heapify(arr, n, largest, key)
 
+#Heap sort
 def heap_sort(arr, key=lambda x: x):
     n = len(arr)
 
