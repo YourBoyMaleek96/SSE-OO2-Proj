@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-from GameList import Game, games_data, GameGraph,get_games
+from GameList import Game, games_data, GameGraph, get_games, get_recommendations_for_genre
 import random
 from Sort import merge_sort, quick_sort, selection_sort, bubble_sort, insertion_sort, heap_sort
 
@@ -182,7 +182,6 @@ class GameShopGUI:
 
     #Game sorting function
     def sort_games(self, sort_criteria, order="ascending"):
-        """Sorts the list of games based on a given criterion."""
         games = self.games_data
 
         if sort_criteria == 'title':
@@ -391,33 +390,34 @@ class GameShopGUI:
                 self.last_added_genre = None
 
             self.update_cart_display()
+            if not self.cart.is_empty():
+                self.last_added_genre = self.cart.peek()['genre']
+            else:
+                self.last_added_genre = None
+
             self.update_recommended_games()
         else:
             messagebox.showinfo("Selection Error", "Please select an item to remove.")
 
     #Game recommedation system
     def update_recommended_games(self):
-        """Update the recommended games based on the last added genre"""
         self.recommended_listbox.delete(0, tk.END)
-        selected_game = self.cart.peek()
-        if self.last_added_genre:
-            recommended_games = [game for game in games_data if game['genre'] == self.last_added_genre]
+        self.recommended_listbox.insert(tk.END, "A game you may also like:")
 
-            recommended_games = [game for game in recommended_games if game not in self.cart.items]
-
-            if recommended_games:
-                recommended_game = random.choice(recommended_games)
-                
-                self.recommended_listbox.delete(0, tk.END)
-                self.recommended_listbox.insert(tk.END, "Games you may also like:")
-                self.recommended_listbox.insert(tk.END, recommended_game['title'])
+        if not self.cart.is_empty() and self.last_added_genre:
+            recommended_games = get_recommendations_for_genre(self.last_added_genre)
+            
+            games_in_cart_titles = [game['title'] for game in self.cart.items]
+            available_recommendations = [game for game in recommended_games if game not in games_in_cart_titles]
+            
+            if available_recommendations:
+                recommended_game = random.choice(available_recommendations)
+                self.recommended_listbox.insert(tk.END, recommended_game)
             else:
-                self.recommended_listbox.delete(0, tk.END)
                 self.recommended_listbox.insert(tk.END, "No recommended games found")
         else:
-            self.recommended_listbox.delete(0, tk.END)
             self.recommended_listbox.insert(tk.END, "Add a game to your cart to see recommendations")
-    
+        
     #Calculates cost of items in cart (Stack manipulation)
     def calculate_total_cost(self):
         total_cost = 0
